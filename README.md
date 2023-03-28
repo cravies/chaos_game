@@ -10,5 +10,4 @@
 ![sierpinski square](result.png)
 
 ## TODO
-* Generate points with C++, plot with Python
 * Accept different types of polygons with constructor overloading

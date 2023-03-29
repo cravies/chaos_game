@@ -7,30 +7,27 @@
 #include <random>
 #include <algorithm>
 #include <functional>
+#include <math.h>
+#include "auxillary.h"
 
 using namespace std;
 
 int ITERS = 10000;
 
-// average of two points
-double average(const double& a, const double& b) {
-    return 0.5*(a + b);
-}
-
-void make_points_square(float lower, float upper, vector<vector<double>> &points) {
+void make_points_square(vector<vector<double>> &points) {
     // generate vertices
     vector<vector<double>> vertices;
-    vertices.emplace_back(vector<double>{lower, lower});
-    vertices.emplace_back(vector<double>{lower, upper});
-    vertices.emplace_back(vector<double>{upper, lower});
-    vertices.emplace_back(vector<double>{upper, upper});
-    cout << "make_points_square\n";
+    vertices.emplace_back(vector<double>{0, 0});
+    vertices.emplace_back(vector<double>{0, 1});
+    vertices.emplace_back(vector<double>{1, 0});
+    vertices.emplace_back(vector<double>{1, 1});
+    cout << "make_points_square" << endl;
     for (vector<double> v : vertices) {
-        cout << "vertex:\n";
+        cout << "vertex:" << endl;
         for (double d : v) {
             cout << "\t" << d;
         }
-        cout << "\n";
+        cout << endl;
     }
     // generate points
     // current point location
@@ -44,8 +41,6 @@ void make_points_square(float lower, float upper, vector<vector<double>> &points
     mt19937 gen(rd());
     // for picking vertices
     uniform_int_distribution<> choose_vertex(0, 3);
-    // for generating x and y points inside the square
-    uniform_real_distribution<> choose_coord(lower, upper);
     for (int i=0; i<ITERS; i++) {
         int v = choose_vertex(gen);
         vertex = vertices[v];
@@ -62,33 +57,52 @@ void make_points_square(float lower, float upper, vector<vector<double>> &points
     }
 }
 
-// write our points to a csv
-void writePointsToCsv(const vector<vector<double>>& points, const string& filename) {
-    ofstream csvFile(filename);
-
-    if (!csvFile.is_open()) {
-        cerr << "Error: Could not open file " << filename << " for writing." << endl;
-        return;
-    }
-
-    for (const auto& point : points) {
-        for (size_t i = 0; i < point.size(); ++i) {
-            csvFile << point[i];
-            if (i != point.size() - 1) {
-                csvFile << ",";
-            }
+void make_points_triangle(vector<vector<double>> &points) {
+    // generate vertices
+    vector<vector<double>> vertices;
+    vertices.emplace_back(vector<double>{0, 0});
+    vertices.emplace_back(vector<double>{0.5, (sqrt(3)*0.5)});
+    vertices.emplace_back(vector<double>{1, 0});
+    cout << "make_points_triangle" << endl;
+    for (vector<double> v : vertices) {
+        cout << "vertex:" << endl;
+        for (double d : v) {
+            cout << "\t" << d;
         }
-        csvFile << endl;
+        cout << endl;
     }
-
-    csvFile.close();
+    // generate points
+    // current point location
+    vector<double> mid = {0.33,0.33};
+    // previous selected vertex
+    vector<double> prev = vertices[0];
+    // current selected vertex
+    vector<double> vertex = vertices[1];
+    // random number generator object
+    random_device rd;
+    mt19937 gen(rd());
+    // for picking vertices
+    uniform_int_distribution<> choose_vertex(0, 2);
+    for (int i=0; i<ITERS; i++) {
+        int v = choose_vertex(gen);
+        vertex = vertices[v];
+        // mid = 1/2(vertex + mid)
+        transform(mid.begin(), mid.end(), vertex.begin(), mid.begin(), average);
+        // add to points
+        points.push_back(mid);
+        // set prev vertex
+        prev = vertex;
+    }
 }
 
 int main() {
     // vector of chaos game points
-    vector<vector<double>> points;
+    vector<vector<double>> pointsSquare;
+    vector<vector<double>> pointsTriangle;
     // 
     cout << "chaos game hello world\n";
-    make_points_square(0.0,1.0,points);
-    writePointsToCsv(points, "out.csv");
+    make_points_square(pointsSquare);
+    writePointsToCsv(pointsSquare, "square.csv");
+    make_points_triangle(pointsTriangle);
+    writePointsToCsv(pointsTriangle, "triangle.csv");
 }
